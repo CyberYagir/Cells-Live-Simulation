@@ -5,19 +5,20 @@ using UnityEngine;
 [System.Serializable]
 public class World {
     public float sunEnergy;
-    public float rotateEnergy;
-    public float moveEnergy;
     public int maxEnergy;
+    public float actionEnergy;
 }
 
 
 public class GameManager : MonoBehaviour
 {
     public static GameManager instance;
-    [SerializeField] int fieldSize;
+    public int fieldSize;
     Cell[,] cells;
     [SerializeField] GameObject cellPrefab;
     List<Cell> cellsPool = new List<Cell>();
+
+    public List<Cell> activeCells = new List<Cell>();
     public World world;
 
     private void Awake()
@@ -44,6 +45,7 @@ public class GameManager : MonoBehaviour
         {
             var cell = cellsPool[0];
             cellsPool.RemoveAt(0);
+            activeCells.Add(cell);
             return cell;
         }
         return null;
@@ -51,43 +53,57 @@ public class GameManager : MonoBehaviour
     public void Init()
     {
         cells = new Cell[fieldSize, fieldSize];
-        var pos = new Vector2Int(Random.Range(0, fieldSize), Random.Range(0, fieldSize));
-        Set(pos, GetFromPool());
-        Get(pos).WorldInit(pos);
+        for (int i = 0; i < 10; i++)
+        {
+            var pos = new Vector2Int(Random.Range(0, fieldSize), Random.Range(0, fieldSize));
+            if (Get(pos) == null)
+            {
+                Set(pos, GetFromPool());
+                Get(pos).WorldInit(pos);
+            }
+        }
+        
     }
     public Cell Get(Vector2Int pos)
     {
         return cells[pos.x, pos.y];
     }
-    public Cell Set(Vector2Int pos, Cell cell)
+    public Cell Set(Vector2Int pos, CellCore cell)
     {
-        cells[pos.x, pos.y] = cell;
+        cells[pos.x, pos.y] = cell as Cell;
         return cells[pos.x, pos.y];
+    }
+
+    private void OnDrawGizmos()
+    {
+        Gizmos.DrawLine(Vector3.zero, new Vector3(fieldSize, 0));
+        Gizmos.DrawLine(Vector3.zero, new Vector3(0, fieldSize));
+        Gizmos.DrawLine(new Vector3(fieldSize, 0), new Vector3(fieldSize, fieldSize));
+        Gizmos.DrawLine(new Vector3(0, fieldSize), new Vector3(fieldSize, fieldSize));
     }
 
     IEnumerator Ticks()
     {
         while (true)
         {
-            for (int i = 0; i < 20; i++)
+            yield return new WaitForSeconds(1f/20f);
+
+            bool itemis = false;
+            for (int i = 0; i < activeCells.Count; i++)
             {
-                for (int x = 0; x < cells.GetLength(0); x++)
+                if (activeCells[i] != null)
                 {
-                    for (int y = 0; y < cells.GetLength(1); y++)
-                    {
-                        if (cells[x, y] != null)
-                            cells[x, y].UpdateCell();
-                    }
+                    activeCells[i].UpdateCell();
                 }
-                yield return new WaitForSeconds(1f / 20f);
+                else
+                {
+                    itemis = true;
+                }
             }
-            for (int x = 0; x < cells.GetLength(0); x++)
+
+            if (itemis)
             {
-                for (int y = 0; y < cells.GetLength(1); y++)
-                {
-                    if (cells[x, y] != null)
-                        cells[x, y].Brain();
-                }
+                activeCells.RemoveAll(x => x == null);
             }
         }
     }
