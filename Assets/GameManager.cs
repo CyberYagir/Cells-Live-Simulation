@@ -20,14 +20,24 @@ public class GameManager : MonoBehaviour
 
     public List<Cell> activeCells = new List<Cell>();
     public World world;
+    [HideInInspector]
+    public int sun, meat, combined, ticks, generation;
 
     private void Awake()
     {
+
         instance = this;
         PoolInit();
         Init();
-
         StartCoroutine(Ticks());
+    }
+
+    void Update()
+    {
+        if (Input.GetKey(KeyCode.Space))
+        {
+            StopAllCoroutines();
+        }
     }
 
     public void PoolInit()
@@ -50,9 +60,19 @@ public class GameManager : MonoBehaviour
         }
         return null;
     }
+
+    public void BackToPool(Cell cell)
+    {
+        cell.UnInit();
+        cellsPool.Add(cell);
+    }
+
     public void Init()
     {
         cells = new Cell[fieldSize, fieldSize];
+    }
+    public void Spawn()
+    {
         for (int i = 0; i < 10; i++)
         {
             var pos = new Vector2Int(Random.Range(0, fieldSize), Random.Range(0, fieldSize));
@@ -62,14 +82,18 @@ public class GameManager : MonoBehaviour
                 Get(pos).WorldInit(pos);
             }
         }
-        
+        generation++;
     }
     public Cell Get(Vector2Int pos)
     {
         return cells[pos.x, pos.y];
     }
-    public Cell Set(Vector2Int pos, CellCore cell)
+    public Cell Set(Vector2Int pos, CellCore cell, bool death = false)
     {
+        if (death)
+        {
+            BackToPool(cells[pos.x, pos.y]);
+        }
         cells[pos.x, pos.y] = cell as Cell;
         return cells[pos.x, pos.y];
     }
@@ -86,26 +110,35 @@ public class GameManager : MonoBehaviour
     {
         while (true)
         {
-            yield return new WaitForSeconds(1f/20f);
-
-            bool itemis = false;
+            if (activeCells.Count == 0) Spawn();
+            yield return new WaitForSeconds(1f / 20f);
+            sun = 0; meat = 0; combined = 0;
             for (int i = 0; i < activeCells.Count; i++)
             {
                 if (activeCells[i] != null)
                 {
+                    switch (activeCells[i].kind)
+                    {
+                        case CellKind.Sun:
+                            sun++;
+                            break;
+                        case CellKind.Meat:
+                            meat++;
+                            break;
+                        case CellKind.Combined:
+                            combined++;
+                            break;
+                    }
                     activeCells[i].UpdateCell();
-                }
-                else
-                {
-                    itemis = true;
+                    if (i % 1000 == 0)
+                    {
+                        yield return null;
+                    }
                 }
             }
-
-            if (itemis)
-            {
-                activeCells.RemoveAll(x => x == null);
-            }
+            UIManager.instance.UpdateUI();
+            ticks++;
+            yield return null;
         }
     }
-
 }
