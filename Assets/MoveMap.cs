@@ -15,10 +15,14 @@ public class MoveMap : MonoBehaviour
     }
     void Update()
     {
+        scale = Mathf.Clamp(scale, 0.1f, 5);
         if (Input.GetKey(KeyCode.Mouse1))
         {
-            scale += Mathf.Clamp(Input.GetAxis("Mouse X"), -1, 1) * Time.deltaTime * scaleSpeed;
-            offcet -= new Vector2(1, 0.5f)* Mathf.Clamp(Input.GetAxis("Mouse X"), -1, 1) * Time.deltaTime * scaleSpeed;
+            if (scale + Mathf.Clamp(Input.GetAxis("Mouse X"), -1, 1) * Time.deltaTime * scaleSpeed < 5)
+            {
+                scale += Mathf.Clamp(Input.GetAxis("Mouse X"), -1, 1) * Time.deltaTime * scaleSpeed;
+                offcet -= new Vector2(1, 0.5f) * Mathf.Clamp(Input.GetAxis("Mouse X"), -1, 1) * Time.deltaTime * scaleSpeed;
+            }
         }
         else
         if (Input.GetKey(KeyCode.Mouse0))

@@ -14,11 +14,14 @@ public class RenderTextureCreator : MonoBehaviour
     }
     private void OnPostRender()
     {
-        Texture2D txt = new Texture2D((int)Camera.main.pixelRect.width, (int)Camera.main.pixelRect.height, TextureFormat.RGB24, false);
-        txt.ReadPixels(Camera.main.pixelRect, 0, 0, false);
-        txt.filterMode = FilterMode.Point;
-        txt.Apply();
-        Destroy(texture);
-        texture = txt;
+        if (this.enabled)
+        {
+            Texture2D txt = new Texture2D((int)Camera.main.pixelRect.width, (int)Camera.main.pixelRect.height, TextureFormat.RGB24, false);
+            txt.ReadPixels(Camera.main.pixelRect, 0, 0, false);
+            txt.filterMode = FilterMode.Point;
+            txt.Apply();
+            Destroy(texture);
+            texture = txt;
+        }
     }
 }

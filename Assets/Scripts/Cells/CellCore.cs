@@ -15,6 +15,7 @@ public abstract class CellCore
     protected float energy;
     protected CellBonuses cellBonuses;
     protected float hp = 100;
+    protected float maxhp = 100;
 
 
     protected World world;
@@ -28,6 +29,10 @@ public abstract class CellCore
         get {
             return world.maxEnergy * cellBonuses.GetValue(GetCellData(), GenTypes.MAXENERGY);
         }
+    }
+    public CellData GetCellData()
+    {
+        return new CellData() { currentThought = currentThought, rotation = rotation, energy = energy, kind = kind, thoughts = thoughts};
     }
 
     protected float actionEnergyMove
@@ -164,10 +169,7 @@ public abstract class CellCore
         }
         return newPos;
     }
-    public CellData GetCellData()
-    {
-        return new CellData() { currentThought = currentThought, rotation = rotation, energy = energy, kind = kind, thoughts = thoughts, lastAction = lastAction };
-    }
+   
 
 
     public void print(object obj)

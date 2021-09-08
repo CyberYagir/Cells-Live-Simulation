@@ -8,8 +8,7 @@ public enum CellKind { Sun, Meat, Combined};
 [System.Serializable]
 public class Cell : CellCore
 {
-
-
+    public Color genColor, typeColor;
     public Cell(Transform cell)
     {
         Init(cell);
@@ -47,25 +46,32 @@ public class Cell : CellCore
             thoughts = (parent as Cell).thoughts;
             if (Random.Range(1, 5) == 1)
             {
-                rotation = parent.GetCellData().rotation;
+                rotation = (parent as Cell).GetCellData().rotation;
             }
             if (Random.Range(0, 100) == 1)
                 thoughts[Random.Range(0, thoughtsLength)] = (byte)Random.Range(0, thoughtsMax);
-        }
 
-        if (thoughts[0] % 4 == 0)
-        {
-            kind = CellKind.Sun;
-        }
-        else if (thoughts[0] % 6 == 0)
-        {
-            kind = CellKind.Combined;
+            if (thoughts[0] % 4 == 0)
+            {
+                energy = world.actionEnergy;
+                kind = CellKind.Meat;
+            }
+            else if (thoughts[0] % 6 == 0)
+            {
+                kind = CellKind.Combined;
+            }
+            else
+            {
+                kind = CellKind.Sun;
+            }
         }
         else
         {
-            energy = world.actionEnergy;
-            kind = CellKind.Meat;
+            thoughts[0] = 9;
+            kind = CellKind.Sun;
         }
+        
+        
 
         float r = 0, g = 0, b = 0;
         var thoughtCount = thoughtsLength;
@@ -85,9 +91,23 @@ public class Cell : CellCore
             }
         }
         float max = Mathf.Max(Mathf.Max(r, g), b);
-        cellInWorld.GetComponent<SpriteRenderer>().color = new Color32((byte)(((r / max) * (255))), (byte)((g / max) * (255)), (byte)((b / max) * (255)), 255);
-        hp = cellBonuses.GetValue(GetCellData(), GenTypes.HP) * Random.Range(1f, 1.5f);
+        genColor = new Color32((byte)(((r / max) * (255))), (byte)((g / max) * (255)), (byte)((b / max) * (255)), 255);
 
+        Color.RGBToHSV(genColor, out float h, out float s, out float v);
+        genColor = Color.HSVToRGB(h, s * 2f, v);
+
+        typeColor = kind == CellKind.Sun ? Color.green : (kind == CellKind.Meat ? Color.red : Color.blue);
+        hp = cellBonuses.GetValue(GetCellData(), GenTypes.HP) * Random.Range(1f, 1.5f);
+        maxhp = hp;
+        ChangeColor();
+    }
+
+    public void ChangeColor()
+    {
+        if (!isDead)
+        {
+            cellInWorld.GetComponent<SpriteRenderer>().color = CameraModes.viewMode == CameraModes.ViewMode.Gen ? genColor : typeColor;
+        }
     }
     public void UnInit()
     {
@@ -193,7 +213,7 @@ public class Cell : CellCore
     {
         energy -= world.actionEnergy;
         int rotate = (int)rotation;
-        rotate += Random.Range(-1, 2);
+        rotate += Random.Range((thoughts[6] % 2 == 0 || thoughts[4] % 4 == 0) ? -1 : 0, (thoughts[6] % 5 == 0 || thoughts[7] % 9 == 0) ? 2 : 0);
         if (rotate >= 4) rotate = 0;
         if (rotate < 0) rotate = 3;
         rotation = (Rotation)rotate;
@@ -294,12 +314,18 @@ public class Cell : CellCore
         {
             energy = maxEnergy;
         }
-        if (energy < 0) Death();
+        if (energy <= 0) Death();
     }
     public void CombinedCellUpdate()
     {
         SunCellUpdate();
         MeatCellUpdate();
+    }
+
+
+    public new CellData GetCellData()
+    {
+        return new CellData() { currentThought = currentThought, rotation = rotation, energy = energy, kind = kind, thoughts = thoughts, moveEnergy = actionEnergyMove, genColor = genColor, isDead = isDead, typeColor = typeColor, maxEnergy = maxEnergy, hp = hp, maxHp = maxhp};
     }
 
 }
