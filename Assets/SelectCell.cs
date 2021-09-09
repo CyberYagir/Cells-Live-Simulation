@@ -17,17 +17,17 @@ public class SelectCell : MonoBehaviour
         }
         if (CameraModes.cameraMode == CameraModes.CameraMode.Clamp)
         {
-            point = Vector2Int.RoundToInt(transform.InverseTransformPoint(Camera.main.ScreenToWorldPoint(Input.mousePosition)));
-            if (point.x <= GameManager.instance.fieldSize - 1 && point.y <= GameManager.instance.fieldSize - 1 && point.x >= 0 && point.y >= 0)
+            if (Input.GetKeyDown(KeyCode.Mouse0))
             {
-                if (Input.GetKeyDown(KeyCode.Mouse0))
+                point = Vector2Int.RoundToInt(transform.InverseTransformPoint(Camera.main.ScreenToWorldPoint(Input.mousePosition)));
+                if (point.x <= GameManager.instance.fieldSize - 1 && point.y <= GameManager.instance.fieldSize - 1 && point.x >= 0 && point.y >= 0)
                 {
                     selected = GameManager.instance.Get(point);
                 }
-            }
-            else
-            {
-                selected = null;
+                else
+                {
+                    selected = null;
+                }
             }
         }
         else

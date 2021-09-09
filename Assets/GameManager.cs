@@ -113,32 +113,53 @@ public class GameManager : MonoBehaviour
             if (activeCells.Count == 0) Spawn();
             yield return new WaitForSeconds(1f / 20f);
             sun = 0; meat = 0; combined = 0;
+
+            List<int> removes = new List<int>();
             for (int i = 0; i < activeCells.Count; i++)
             {
                 if (activeCells[i] != null)
                 {
-                    switch (activeCells[i].kind)
-                    {
-                        case CellKind.Sun:
-                            sun++;
-                            break;
-                        case CellKind.Meat:
-                            meat++;
-                            break;
-                        case CellKind.Combined:
-                            combined++;
-                            break;
-                    }
                     activeCells[i].UpdateCell();
+                    if (activeCells[i].isDead == false)
+                    {
+                        switch (activeCells[i].kind)
+                        {
+                            case CellKind.Sun:
+                                sun++;
+                                break;
+                            case CellKind.Meat:
+                                meat++;
+                                break;
+                            case CellKind.Combined:
+                                combined++;
+                                break;
+                        }
+                    }
+                    else
+                    {
+                        removes.Add(i);
+                    }
                     if (i % 1000 == 0)
                     {
                         yield return null;
                     }
                 }
+                else
+                {
+                    removes.Add(i);
+                }
             }
+            
+            for (int i = 0; i < removes.Count; i++)
+            {
+                activeCells.RemoveAt(removes[i]-i);
+            }
+
             UIManager.instance.UpdateUI();
             ticks++;
             yield return null;
         }
     }
+
+
 }

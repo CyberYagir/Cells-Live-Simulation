@@ -18,7 +18,7 @@ public class Cell : CellCore
     {
         cellInWorld = cell;
         cell.gameObject.SetActive(false);
-
+        smoothMover = cellInWorld.GetComponent<SmoothMover>();
         thoughts = new byte[thoughtsLength];
         for (int i = 0; i < thoughts.Length; i++)
         {
@@ -48,7 +48,7 @@ public class Cell : CellCore
             {
                 rotation = (parent as Cell).GetCellData().rotation;
             }
-            if (Random.Range(0, 100) == 1)
+            if (Random.Range(0, 50) == 1)
                 thoughts[Random.Range(0, thoughtsLength)] = (byte)Random.Range(0, thoughtsMax);
 
             if (thoughts[0] % 4 == 0)
@@ -270,7 +270,6 @@ public class Cell : CellCore
 
     public void UpdateCell()
     {
-        hp -= 0.1f;
         if (hp <= 0)
         {
             Death();
@@ -292,12 +291,29 @@ public class Cell : CellCore
                     break;
             }
             var oldPos = (Vector2)posInArray;
+
             Brain();
-            if (Vector2.Distance(posInArray, oldPos) > 5)
+
+
+            if (GameManager.instance.activeCells.Count < 1000)
             {
+                smoothMover.enabled = true;
+                if (Vector2.Distance(posInArray, oldPos) > 5)
+                {
+                    cellInWorld.position = (Vector2)posInArray;
+                }
+                smoothMover.newPos = (Vector2)posInArray;
+            }
+            else
+            {
+                smoothMover.enabled = false;
                 cellInWorld.position = (Vector2)posInArray;
             }
-            cellInWorld.GetComponent<SmoothMover>().newPos = (Vector2)posInArray;
+        }
+        hp -= 0.1f;
+        if (hp <= 0)
+        {
+            Death();
         }
     }
     public void SunCellUpdate()
@@ -307,12 +323,21 @@ public class Cell : CellCore
         {
             energy = maxEnergy;
         }
+        if ((int)hp > maxhp)
+        {
+            hp = maxhp;
+        }
     }
     public void MeatCellUpdate()
     {
         if ((int)energy > maxEnergy)
         {
             energy = maxEnergy;
+        }
+
+        if ((int)hp > maxhp)
+        {
+            hp = maxhp;
         }
         if (energy <= 0) Death();
     }

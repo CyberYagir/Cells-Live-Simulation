@@ -22,6 +22,8 @@ public abstract class CellCore
     public Vector2Int posInArray;
     public bool isDead;
 
+    protected SmoothMover smoothMover;
+
     protected string lastAction = "None";
 
     protected float maxEnergy
@@ -46,8 +48,6 @@ public abstract class CellCore
     public void Death()
     {
         isDead = true;
-        GameManager.instance.activeCells.Remove(this as Cell);
-        GameManager.instance.activeCells.RemoveAll(x => x == null);
         cellInWorld.GetComponent<SpriteRenderer>().color = new Color(0.2f, 0.2f, 0.2f, 1);
     }
     public void Move(Vector3 dir)
@@ -110,8 +110,8 @@ public abstract class CellCore
         {
             if (nearCell.isDead)
             {
-                hp += 10;
-                energy += maxEnergy/2f;
+                hp += maxhp * 0.1f;
+                energy += world.actionEnergy / 2f;
                 GameManager.instance.Set(nextPos, null, true);
                 return true;
             }
@@ -124,8 +124,8 @@ public abstract class CellCore
                 }
                 if (IsntBrotherCell(nearCell))
                 {
-                    hp += nearCell.hp/2f;
-                    energy += maxEnergy/2f;
+                    hp += maxhp * 0.1f;
+                    energy += world.actionEnergy / 2f;
                     GameManager.instance.Set(nextPos, null, true);
                     return true;
                 }
@@ -136,7 +136,7 @@ public abstract class CellCore
 
     public bool IsntBrotherCell(Cell nearCell)
     {
-        return (nearCell.CollectGens() - CollectGens() > 50 || energy < world.maxEnergy / 2f || nearCell.kind != kind) && nearCell.hp < hp;
+        return (nearCell.CollectGens() - CollectGens() > 50 || energy < world.maxEnergy / 2f || nearCell.kind != kind) && nearCell.hp < hp/1.5f;
     }
 
     public int CollectGens()

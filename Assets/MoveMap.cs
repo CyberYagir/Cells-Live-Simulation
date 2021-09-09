@@ -21,12 +21,12 @@ public class MoveMap : MonoBehaviour
             if (scale + Mathf.Clamp(Input.GetAxis("Mouse X"), -1, 1) * Time.deltaTime * scaleSpeed < 5)
             {
                 scale += Mathf.Clamp(Input.GetAxis("Mouse X"), -1, 1) * Time.deltaTime * scaleSpeed;
-                offcet -= new Vector2(1, 0.5f) * Mathf.Clamp(Input.GetAxis("Mouse X"), -1, 1) * Time.deltaTime * scaleSpeed;
+                offcet -= new Vector2(1, 0.5f) * Mathf.Clamp(Input.GetAxis("Mouse X"), -1, 1) * Time.deltaTime * scaleSpeed * scale;
             }
         }
         else
         if (Input.GetKey(KeyCode.Mouse0))
-            offcet -= new Vector2(Input.GetAxis("Mouse X"), Input.GetAxis("Mouse Y")) * Time.deltaTime * speed;
+            offcet -= new Vector2(Input.GetAxis("Mouse X"), Input.GetAxis("Mouse Y")) * Time.deltaTime * speed*scale;
         if (rtc.texture != null)
         {
             GetComponent<RawImage>().texture = rtc.texture;

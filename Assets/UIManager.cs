@@ -11,12 +11,22 @@ public class UIManager : MonoBehaviour
     public RenderTextureCreator renderTexture;
     [Space(20)]
     public GameObject info;
-    public TMP_Text infoText;
+    public TMP_Text infoText, timeText;
     public Image cell;
+    public Slider slider;
 
     private void Start()
     {
         instance = this;
+        slider.value = Time.timeScale;
+    }
+    private void Update()
+    {
+        timeText.text = $"Time [{Time.timeScale.ToString("000")}]: ";
+    }
+    public void ChangeTime()
+    {
+        Time.timeScale = slider.value;
     }
     public void UpdateUI()
     {
