@@ -35,8 +35,8 @@ public class UIAnimate : MonoBehaviour
     }
     private void Update()
     {
-        if (Time.deltaTime > 0.1f) return;
-        time += Time.deltaTime;
+        if (Time.unscaledDeltaTime > 0.1f) return;
+        time += Time.unscaledDeltaTime;
         if (plaing && time > startWaitTime)
         {
             if (playType == PlayType.Forward)
@@ -54,11 +54,11 @@ public class UIAnimate : MonoBehaviour
     {
         if (moveType == MoveType.Move)
         {
-            transform.anchoredPosition = Vector3.LerpUnclamped(transform.anchoredPosition, point, speed * Time.deltaTime);
+            transform.anchoredPosition = Vector3.LerpUnclamped(transform.anchoredPosition, point, speed * Time.unscaledDeltaTime);
         }
         if (moveType == MoveType.Lerp)
         {
-            transform.anchoredPosition = Vector3.Lerp(transform.anchoredPosition, point, speed * Time.deltaTime);
+            transform.anchoredPosition = Vector3.Lerp(transform.anchoredPosition, point, speed * Time.unscaledDeltaTime);
         }
     }
 

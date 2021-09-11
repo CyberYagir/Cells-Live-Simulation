@@ -13,7 +13,6 @@ public abstract class CellCore
     protected Transform cellInWorld;
     public CellKind kind;
     protected float energy;
-    protected CellBonuses cellBonuses;
     protected float hp = 100;
     protected float maxhp = 100;
 
@@ -26,23 +25,18 @@ public abstract class CellCore
 
     protected string lastAction = "None";
 
-    protected float maxEnergy
-    {
-        get {
-            return world.maxEnergy * cellBonuses.GetValue(GetCellData(), GenTypes.MAXENERGY);
-        }
-    }
-    public CellData GetCellData()
-    {
-        return new CellData() { currentThought = currentThought, rotation = rotation, energy = energy, kind = kind, thoughts = thoughts};
-    }
-
-    protected float actionEnergyMove
-    {
+    public float actionEnergy {
         get
         {
-            return world.actionEnergy / (kind == CellKind.Meat ? 5 : 1) / (kind == CellKind.Combined ? 2 : 1);
+            return (world.actionEnergy / (kind == CellKind.Meat ? 3 : 1)) / (kind == CellKind.Combined ? 2 : 1);
         }
+    }
+
+
+
+    public CellData GetCellData()
+    {
+        return new CellData() { currentThought = currentThought, rotation = rotation, energy = energy, kind = kind, thoughts = thoughts };
     }
 
     public void Death()
@@ -50,93 +44,100 @@ public abstract class CellCore
         isDead = true;
         cellInWorld.GetComponent<SpriteRenderer>().color = new Color(0.2f, 0.2f, 0.2f, 1);
     }
-    public void Move(Vector3 dir)
+    public void TransferEnergy(Vector2Int dir)
     {
-        bool can = true;
-
-        var nextPos = CalcPos(posInArray + Vector2Int.RoundToInt(dir));
-        if (!CheckIsCellImpty(dir))
+        var nextPos = CalcPos(posInArray + dir);
+        if (!CheckIsCellImpty((Vector2)dir))
         {
-            if (GameManager.instance.Get(nextPos).isDead == false && kind == CellKind.Sun)
+            var cell = GameManager.instance.Get(nextPos);
+            if (!IsntBrotherCell(cell))
             {
-                can = false;
-            }
-        }
-
-        if (can)
-        {
-            bool isEated = EatDead(nextPos);
-            if (isEated)
-            {
-                GameManager.instance.Set(CalcPos(posInArray), null);
-                GameManager.instance.Set(nextPos, this);
-                posInArray = CalcPos(posInArray + Vector2Int.RoundToInt(dir));
-                energy -= actionEnergyMove;
-                energy += isEated ? maxEnergy / 2f : 0;
+                cell.energy += actionEnergy;
+                energy -= actionEnergy;
             }
         }
     }
-    public bool Dublicate(Vector3 dir)
+    public bool Move(Vector3 dir)
     {
-        bool can = true;
-        var nextPos = CalcPos(posInArray + Vector2Int.RoundToInt(dir));
-        if (!CheckIsCellImpty(dir))
+        if (energy > actionEnergy)
         {
-            if (GameManager.instance.Get(nextPos).isDead == false)
+            var nextPos = CalcPos(posInArray + Vector2Int.RoundToInt(dir));
+            if (CheckIsCellImpty(dir) || Eat(dir))
             {
-                can = false;
-            }
-        }
-        if (can)
-        {
-            var isEated = EatDead(nextPos);
-            if (isEated)
-            {
-                var newPos = nextPos;
-                var newCell = GameManager.instance.Set(newPos, GameManager.instance.GetFromPool());
-                newCell.WorldInit(newPos, this);
-                newCell.posInArray = nextPos;
-                newCell.energy = world.actionEnergy;
-                energy -= world.actionEnergy;
+                GameManager.instance.Set(nextPos, this);
+                GameManager.instance.Set(CalcPos(posInArray), null);
+                posInArray = nextPos;
+                energy -= actionEnergy;
                 return true;
             }
         }
         return false;
     }
-    public bool EatDead(Vector2Int nextPos)
+
+    public bool Eat(Vector3 dir)
     {
+        var nextPos = CalcPos(posInArray + Vector2Int.RoundToInt(dir));
         var nearCell = GameManager.instance.Get(nextPos);
         if (nearCell != null)
         {
-            if (nearCell.isDead)
+            if (kind == CellKind.Sun)
             {
-                hp += maxhp * 0.1f;
-                energy += world.actionEnergy / 2f;
-                GameManager.instance.Set(nextPos, null, true);
-                return true;
-            }
-            else if (kind != CellKind.Sun)
-            {
-                if (nearCell.hp > hp && kind == CellKind.Meat)
+                if (nearCell.isDead)
                 {
-                    Death();
-                    return false;
-                }
-                if (IsntBrotherCell(nearCell))
-                {
-                    hp += maxhp * 0.1f;
-                    energy += world.actionEnergy / 2f;
                     GameManager.instance.Set(nextPos, null, true);
+                    energy += actionEnergy;
                     return true;
                 }
             }
+            else
+            {
+                if (nearCell.isDead)
+                {
+                    GameManager.instance.Set(nextPos, null, true);
+                    energy += actionEnergy;
+                    return true;
+                }
+                else
+                {
+                    if (!IsntBrotherCell(nearCell))
+                    {
+                        energy += actionEnergy + nearCell.energy;
+                        nearCell.isDead = true;
+                        GameManager.instance.Set(nextPos, null, true);
+                        return true;
+                    }
+                }
+            }
         }
-        return nearCell == null ? true : false;
+        return false;
+    }
+
+    public bool Dublicate(Vector3 dir)
+    {
+        var newPos = CalcPos(posInArray + Vector2Int.RoundToInt(dir));
+        if (CheckIsCellImpty(dir))
+        {
+            var newCell = GameManager.instance.Set(newPos, GameManager.instance.GetFromPool());
+            newCell.WorldInit(newPos, this);
+            newCell.posInArray = newPos;
+            newCell.energy = actionEnergy;
+            energy -= actionEnergy;
+            return true;
+        }
+        else
+        {
+            if (GameManager.instance.Get(newPos).isDead)
+            {
+                Move(dir);
+                return false;
+            }
+        }
+        return false;
     }
 
     public bool IsntBrotherCell(Cell nearCell)
     {
-        return (nearCell.CollectGens() - CollectGens() > 50 || energy < world.maxEnergy / 2f || nearCell.kind != kind) && nearCell.hp < hp/1.5f;
+        return (nearCell.CollectGens() - CollectGens() > 50);
     }
 
     public int CollectGens()
