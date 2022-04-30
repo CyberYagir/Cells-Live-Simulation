@@ -5,6 +5,8 @@ using UnityEngine;
 public abstract class CellCore
 {
 
+    public int uid;
+    
     protected Rotation rotation;
     protected byte[] thoughts;
     protected byte currentThought = 0;
@@ -17,74 +19,75 @@ public abstract class CellCore
     protected float maxhp = 100;
 
 
-    protected World world;
+    protected WorldObject world;
     public Vector2Int posInArray;
     public bool isDead;
 
     protected SmoothMover smoothMover;
+    public SpriteRenderer renderer;
 
-    protected string lastAction = "None";
-
-    public float actionEnergy {
+    public int genSum;
+    
+    protected float actionEnergy {
         get
         {
-            return (world.actionEnergy / (kind == CellKind.Meat ? 3 : 1)) / (kind == CellKind.Combined ? 2 : 1);
+            var devider = world.kindsEnergyDeviders.sun;
+            if (kind == CellKind.Meat)
+            {
+                devider = world.kindsEnergyDeviders.meat;
+            }else if (kind == CellKind.Combined)
+            {
+                devider = world.kindsEnergyDeviders.combined;
+            }
+            
+            return (world.actionEnergy / devider);
         }
     }
-
-
-
-    public CellData GetCellData()
-    {
-        return new CellData() { currentThought = currentThought, rotation = rotation, energy = energy, kind = kind, thoughts = thoughts };
-    }
-
-    public void Death()
+    
+    protected void Death()
     {
         isDead = true;
-        cellInWorld.GetComponent<SpriteRenderer>().color = new Color(0.2f, 0.2f, 0.2f, 1);
+        renderer.color = world.deathColor;
     }
-    public void TransferEnergy(Vector2Int dir)
+    protected void TransferEnergy(Vector2Int dir)
     {
         var nextPos = CalcPos(posInArray + dir);
-        if (!CheckIsCellImpty((Vector2)dir))
+        if (!CheckIsCellEmpty((Vector2)dir))
         {
-            var cell = GameManager.instance.Get(nextPos);
-            if (!IsntBrotherCell(cell))
+            var cell = GameManager.Instance.Get(nextPos);
+            if (!IsNotBrotherCell(cell))
             {
                 cell.energy += actionEnergy;
                 energy -= actionEnergy;
             }
         }
     }
-    public bool Move(Vector3 dir)
+    protected void Move(Vector3 dir)
     {
         if (energy > actionEnergy)
         {
             var nextPos = CalcPos(posInArray + Vector2Int.RoundToInt(dir));
-            if (CheckIsCellImpty(dir) || Eat(dir))
+            if (CheckIsCellEmpty(dir) || Eat(dir))
             {
-                GameManager.instance.Set(nextPos, this);
-                GameManager.instance.Set(CalcPos(posInArray), null);
+                GameManager.Instance.Set(nextPos, this, false);
+                GameManager.Instance.Set(CalcPos(posInArray), null, false, false);
                 posInArray = nextPos;
                 energy -= actionEnergy;
-                return true;
             }
         }
-        return false;
     }
 
-    public bool Eat(Vector3 dir)
+    private bool Eat(Vector3 dir)
     {
         var nextPos = CalcPos(posInArray + Vector2Int.RoundToInt(dir));
-        var nearCell = GameManager.instance.Get(nextPos);
+        var nearCell = GameManager.Instance.Get(nextPos);
         if (nearCell != null)
         {
             if (kind == CellKind.Sun)
             {
                 if (nearCell.isDead)
                 {
-                    GameManager.instance.Set(nextPos, null, true);
+                    GameManager.Instance.Set(nextPos, null, true, true);
                     energy += actionEnergy;
                     return true;
                 }
@@ -93,17 +96,17 @@ public abstract class CellCore
             {
                 if (nearCell.isDead)
                 {
-                    GameManager.instance.Set(nextPos, null, true);
+                    GameManager.Instance.Set(nextPos, null, true, true);
                     energy += actionEnergy;
                     return true;
                 }
                 else
                 {
-                    if (!IsntBrotherCell(nearCell))
+                    if (!IsNotBrotherCell(nearCell))
                     {
                         energy += actionEnergy + nearCell.energy;
                         nearCell.isDead = true;
-                        GameManager.instance.Set(nextPos, null, true);
+                        GameManager.Instance.Set(nextPos, null, true, true);
                         return true;
                     }
                 }
@@ -112,12 +115,12 @@ public abstract class CellCore
         return false;
     }
 
-    public bool Dublicate(Vector3 dir)
+    protected bool Duplicate(Vector3 dir)
     {
         var newPos = CalcPos(posInArray + Vector2Int.RoundToInt(dir));
-        if (CheckIsCellImpty(dir))
+        if (CheckIsCellEmpty(dir))
         {
-            var newCell = GameManager.instance.Set(newPos, GameManager.instance.GetFromPool());
+            var newCell = GameManager.Instance.Set(newPos, GameManager.Instance.GetFromPool());
             newCell.WorldInit(newPos, this);
             newCell.posInArray = newPos;
             newCell.energy = actionEnergy;
@@ -126,7 +129,7 @@ public abstract class CellCore
         }
         else
         {
-            if (GameManager.instance.Get(newPos).isDead)
+            if (GameManager.Instance.Get(newPos).isDead)
             {
                 Move(dir);
                 return false;
@@ -135,38 +138,38 @@ public abstract class CellCore
         return false;
     }
 
-    public bool IsntBrotherCell(Cell nearCell)
+    protected bool IsNotBrotherCell(Cell nearCell)
     {
-        return (nearCell.CollectGens() - CollectGens() > 50);
+        return (nearCell.genSum - genSum > world.isBrotherDifference);
     }
 
-    public int CollectGens()
+    protected int CollectGens()
     {
         return thoughts.Sum(x => x);
     }
-    public bool CheckIsCellImpty(Vector3 direction)
+    public bool CheckIsCellEmpty(Vector3 direction)
     {
-        return GameManager.instance.Get(CalcPos(posInArray + Vector2Int.RoundToInt(direction))) == null;
+        return GameManager.Instance.Get(CalcPos(posInArray + Vector2Int.RoundToInt(direction))) == null;
     }
     public Vector2Int CalcPos(Vector2Int pos)
     {
         var newPos = pos;
-        if (pos.y >= GameManager.instance.fieldSize)
+        if (pos.y >= GameManager.Instance.fieldSize)
         {
             newPos = new Vector2Int(newPos.x, 0);
         }
-        if (pos.x >= GameManager.instance.fieldSize)
+        if (pos.x >= GameManager.Instance.fieldSize)
         {
             newPos = new Vector2Int(0, newPos.y);
         }
 
         if (pos.y < 0)
         {
-            newPos = new Vector2Int(newPos.x, GameManager.instance.fieldSize - 1);
+            newPos = new Vector2Int(newPos.x, GameManager.Instance.fieldSize - 1);
         }
         if (pos.x < 0)
         {
-            newPos = new Vector2Int(GameManager.instance.fieldSize - 1, newPos.y);
+            newPos = new Vector2Int(GameManager.Instance.fieldSize - 1, newPos.y);
         }
         return newPos;
     }

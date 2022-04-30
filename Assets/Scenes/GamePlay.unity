@@ -879,7 +879,9 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
-    m_RemovedComponents: []
+    m_RemovedComponents:
+    - {fileID: 968259837795282015, guid: 958d352f55ca3ae40832c31ee9eaeea4, type: 3}
+    - {fileID: 2932543358935684956, guid: 958d352f55ca3ae40832c31ee9eaeea4, type: 3}
   m_SourcePrefab: {fileID: 100100000, guid: 958d352f55ca3ae40832c31ee9eaeea4, type: 3}
 --- !u!4 &230168514 stripped
 Transform:
@@ -974,8 +976,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ab78be79b72872345a3f20e4411022f2, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  height: 0
-  oldHeight: 0
   texture: {fileID: 0}
 --- !u!1 &292280295
 GameObject:
@@ -2233,7 +2233,9 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 90
       objectReference: {fileID: 0}
-    m_RemovedComponents: []
+    m_RemovedComponents:
+    - {fileID: 968259837795282015, guid: 958d352f55ca3ae40832c31ee9eaeea4, type: 3}
+    - {fileID: 2932543358935684956, guid: 958d352f55ca3ae40832c31ee9eaeea4, type: 3}
   m_SourcePrefab: {fileID: 100100000, guid: 958d352f55ca3ae40832c31ee9eaeea4, type: 3}
 --- !u!4 &559645996 stripped
 Transform:
@@ -2985,7 +2987,9 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
-    m_RemovedComponents: []
+    m_RemovedComponents:
+    - {fileID: 968259837795282015, guid: 958d352f55ca3ae40832c31ee9eaeea4, type: 3}
+    - {fileID: 2932543358935684956, guid: 958d352f55ca3ae40832c31ee9eaeea4, type: 3}
   m_SourcePrefab: {fileID: 100100000, guid: 958d352f55ca3ae40832c31ee9eaeea4, type: 3}
 --- !u!4 &852745816 stripped
 Transform:
@@ -3995,6 +3999,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1107508243}
   - component: {fileID: 1107508242}
+  - component: {fileID: 1107508244}
   m_Layer: 0
   m_Name: Square
   m_TagString: Untagged
@@ -4072,6 +4077,18 @@ Transform:
   m_Father: {fileID: 0}
   m_RootOrder: 5
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1107508244
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1107508241}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c32ef8e06913f2c4092e25bf6c5cb25a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &1160493746
 GameObject:
   m_ObjectHideFlags: 0
@@ -6287,7 +6304,9 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 90
       objectReference: {fileID: 0}
-    m_RemovedComponents: []
+    m_RemovedComponents:
+    - {fileID: 968259837795282015, guid: 958d352f55ca3ae40832c31ee9eaeea4, type: 3}
+    - {fileID: 2932543358935684956, guid: 958d352f55ca3ae40832c31ee9eaeea4, type: 3}
   m_SourcePrefab: {fileID: 100100000, guid: 958d352f55ca3ae40832c31ee9eaeea4, type: 3}
 --- !u!4 &1967035800 stripped
 Transform:
@@ -6684,23 +6703,16 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 74827b5f78d40fb4f8d314d6a2672fd9, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  fieldSize: 20
   cellPrefab: {fileID: 2058521914059826125, guid: 958d352f55ca3ae40832c31ee9eaeea4,
     type: 3}
+  poolCaret: 0
+  world: {fileID: 11400000, guid: 918ceaad19280fe469bb0b9432f5d02d, type: 2}
   activeCells: []
-  world:
-    sunEnergy: 1
-    maxEnergy: 30
-    actionEnergy: 10
-    deathSpeed: 1
   sun: 0
   meat: 0
   combined: 0
   ticks: 0
   generation: 0
-  cellsPoolDisplay: 0
-  activeCellsDisplay: 0
-  deadCellsDisplay: 1
 --- !u!4 &2031416154
 Transform:
   m_ObjectHideFlags: 0

@@ -5,39 +5,63 @@ using UnityEngine;
 public enum Rotation { Left, Up, Right, Down};
 public enum CellKind { Sun, Meat, Combined};
 
+public enum GenType
+{
+    SunGen = 5,
+    HealthGen = 6,
+    TypeGen = 0
+}
+
 [System.Serializable]
 public class Cell : CellCore
 {
     public Color genColor, typeColor;
     public Cell(Transform cell)
     {
+        uid = Random.Range(int.MinValue, int.MaxValue);
         Init(cell);
     }
 
-    public void Init(Transform cell)
+    public void Init(Transform cell, bool initThouths = true)
     {
         cellInWorld = cell;
         cellInWorld.GetComponent<DisplayCell>().cell = this;
-        cell.gameObject.SetActive(false);
-        smoothMover = cellInWorld.GetComponent<SmoothMover>();
-        thoughts = new byte[thoughtsLength];
-        for (int i = 0; i < thoughts.Length; i++)
+        cellInWorld.gameObject.SetActive(false);
+        
+        if (smoothMover == null)
         {
-            thoughts[i] = (byte)Random.Range(1, thoughtsMax);
-            if (thoughts[i] == thoughts.Length)
-            {
-                thoughts[i]++;
-            }
+            smoothMover = cellInWorld.GetComponent<SmoothMover>();
         }
+
+        if (renderer == null)
+        {
+            renderer = cellInWorld.GetComponent<SpriteRenderer>();
+        }
+
+        if (initThouths)
+        {
+            thoughts = new byte[thoughtsLength];
+            for (int i = 0; i < thoughts.Length; i++)
+            {
+                thoughts[i] = (byte) Random.Range(1, thoughtsMax);
+                if (thoughts[i] == thoughts.Length)
+                {
+                    thoughts[i]++;
+                }
+            }
+
+            genSum = CollectGens();
+        }
+
         isDead = false;
         currentThought = 0;
-        rotation = (Rotation)Random.Range(0, 4);
-        world = GameManager.instance.world;
+        rotation = (Rotation) Random.Range(0, 4);
+        world = GameManager.Instance.world;
     }
 
     public void WorldInit(Vector2Int pos, CellCore parent = null)
     {
-        Init(cellInWorld);
+        Init(cellInWorld, parent != null);
         cellInWorld.gameObject.SetActive(true);
         cellInWorld.position = (Vector2)pos;
         smoothMover.newPos = ((Vector2)pos);
@@ -46,8 +70,9 @@ public class Cell : CellCore
         {
             thoughts = (parent as Cell).thoughts;
             
-            if (Random.Range(0, thoughts[thoughtsLength-1] * 50) == 0)
+            if (Random.Range(0, thoughts[thoughtsLength-1] * world.duplicateRarity) == 0)
                 thoughts[Random.Range(0, thoughtsLength)] = (byte)Random.Range(0, thoughtsMax);
+            genSum = CollectGens();
             kind = parent.kind;
 
             var dirs = new List<bool>();
@@ -58,14 +83,14 @@ public class Cell : CellCore
 
             if (dirs.FindAll(x=>x == true).Count <= 2)
             {
-                if (thoughts[0] % 3 == 0)
+                if (thoughts[(int)GenType.TypeGen] % 3 == 0)
                 {
                     energy = world.maxEnergy;
                     kind = CellKind.Meat;
                 }
-                else if (thoughts[0] % 5 == 0)
+                else if (thoughts[(int)GenType.TypeGen] % 5 == 0)
                 {
-                    energy = world.maxEnergy/2;
+                    energy = world.maxEnergy / 2f;
                     kind = CellKind.Combined;
                 }
                 else
@@ -75,8 +100,20 @@ public class Cell : CellCore
             }
         }
         
-        
+        CalcGenColor();
 
+        typeColor = kind == CellKind.Sun ? Color.green : (kind == CellKind.Meat ? Color.red : Color.blue);
+        
+        hp = thoughts[(int)GenType.HealthGen] * world.heathMultiply  * world.healthRandom.GetRandom();
+
+        
+        maxhp = hp;
+        ChangeColor();
+    }
+
+
+    public void CalcGenColor()
+    {
         float r = 0, g = 0, b = 0;
         var thoughtCount = thoughtsLength;
         for (int i = 0; i < thoughtCount; i++)
@@ -100,23 +137,18 @@ public class Cell : CellCore
         Color.RGBToHSV(genColor, out float h, out float s, out float v);
         genColor = Color.HSVToRGB(h, s * 2f, v);
 
-        typeColor = kind == CellKind.Sun ? Color.green : (kind == CellKind.Meat ? Color.red : Color.blue);
-        hp = thoughts[6] * 10 * Random.Range(1f, 1.5f);
-        maxhp = hp;
-        ChangeColor();
     }
-
+    
     public void ChangeColor()
     {
         if (!isDead)
         {
-            cellInWorld.GetComponent<SpriteRenderer>().color = CameraModes.viewMode == CameraModes.ViewMode.Gen ? genColor : typeColor;
+            renderer.color = CameraModes.viewMode == CameraModes.ViewMode.Gen ? genColor : typeColor;
         }
     }
     public void UnInit()
     {
         cellInWorld.gameObject.SetActive(false);
-        
     }
 
     public void Brain()
@@ -144,8 +176,8 @@ public class Cell : CellCore
         {
             currentThought = 0;
         }
-
     }
+    
     public void TransferCellEnergy()
     {
         if (energy >= world.maxEnergy)
@@ -175,7 +207,7 @@ public class Cell : CellCore
 
     public bool CheckDir(Vector2Int dir)
     {
-        var cell = GameManager.instance.Get(CalcPos(posInArray + dir));
+        var cell = GameManager.Instance.Get(CalcPos(posInArray + dir));
         if (cell != null)
         {
             if (cell.isDead)
@@ -191,10 +223,10 @@ public class Cell : CellCore
     {
         if (energy < actionEnergy/2f) return;
 
-        var down = GameManager.instance.Get(CalcPos(posInArray + Vector2Int.down));
-        var up = GameManager.instance.Get(CalcPos(posInArray + Vector2Int.up));
-        var left = GameManager.instance.Get(CalcPos(posInArray + Vector2Int.left));
-        var right = GameManager.instance.Get(CalcPos(posInArray + Vector2Int.right));
+        var down = GameManager.Instance.Get(CalcPos(posInArray + Vector2Int.down));
+        var up = GameManager.Instance.Get(CalcPos(posInArray + Vector2Int.up));
+        var left = GameManager.Instance.Get(CalcPos(posInArray + Vector2Int.left));
+        var right = GameManager.Instance.Get(CalcPos(posInArray + Vector2Int.right));
 
         bool isFinded = false;
         if (kind == CellKind.Sun)
@@ -203,10 +235,9 @@ public class Cell : CellCore
         }else
         if (kind == CellKind.Meat)
         {
-
             if (down != null)
             {
-                if (IsntBrotherCell(down))
+                if (IsNotBrotherCell(down))
                 {
                     rotation = Rotation.Down;
                     isFinded = true;
@@ -214,7 +245,7 @@ public class Cell : CellCore
             }
             if (up != null)
             {
-                if (IsntBrotherCell(up))
+                if (IsNotBrotherCell(up))
                 {
                     rotation = Rotation.Up;
                     isFinded = true;
@@ -222,7 +253,7 @@ public class Cell : CellCore
             }
             if (left != null)
             {
-                if (IsntBrotherCell(left))
+                if (IsNotBrotherCell(left))
                 {
                     rotation = Rotation.Left;
                     isFinded = true;
@@ -230,7 +261,7 @@ public class Cell : CellCore
             }
             if (right != null)
             {
-                if (IsntBrotherCell(right))
+                if (IsNotBrotherCell(right))
                 {
                     rotation = Rotation.Right;
                     isFinded = true;
@@ -245,7 +276,6 @@ public class Cell : CellCore
                 energy -= actionEnergy / 2f;
             }
         }
-        lastAction = "Rotate";
     }
 
     public Rotation GetInverseRotation()
@@ -295,23 +325,22 @@ public class Cell : CellCore
         switch (rotation)
         {
             case Rotation.Left:
-                isDubed = Dublicate(Vector3.left);
+                isDubed = Duplicate(Vector3.left);
                 break;
             case Rotation.Up:
-                isDubed = Dublicate(Vector3.up);
+                isDubed = Duplicate(Vector3.up);
                 break;
             case Rotation.Right:
-                isDubed = Dublicate(Vector3.right);
+                isDubed = Duplicate(Vector3.right);
                 break;
             case Rotation.Down:
-                isDubed = Dublicate(Vector3.down);
+                isDubed = Duplicate(Vector3.down);
                 break;
         }
         if (isDubed == false)
         {
             RotateCell();
         }
-        lastAction = "Dublicate";
     }
     public void MoveCell()
     {
@@ -331,7 +360,6 @@ public class Cell : CellCore
                 Move(Vector3.down);
                 break;
         }
-        lastAction = "Move";
     }
 
 
@@ -354,39 +382,41 @@ public class Cell : CellCore
                 case CellKind.Combined:
                     CombinedCellUpdate();
                     break;
-                default:
-                    break;
             }
             var oldPos = (Vector2)posInArray;
-
             Brain();
+            SmoothMove(oldPos);
 
-
-            if (GameManager.instance.activeCells.Count < 1000)
-            {
-                smoothMover.enabled = true;
-                if (Vector2.Distance(posInArray, oldPos) > 5)
-                {
-                    cellInWorld.position = (Vector2)posInArray;
-                }
-                smoothMover.newPos = (Vector2)posInArray;
-            }
-            else
-            {
-                smoothMover.enabled = false;
-                cellInWorld.position = (Vector2)posInArray;
-            }
         }
-        hp -= 0.1f * world.deathSpeed;
+        hp -= world.deathSpeed;
         
         if (hp <= 0)
         {
             Death();
         }
     }
+
+    public void SmoothMove(Vector2 oldPos)
+    {
+        if (GameManager.Instance.activeCells.Count < 1000)
+        {
+            smoothMover.enabled = true;
+            if (Vector2.Distance(posInArray, oldPos) > 5)
+            {
+                cellInWorld.position = (Vector2)posInArray;
+            }
+            smoothMover.newPos = (Vector2)posInArray;
+        }
+        else
+        {
+            smoothMover.enabled = false;
+            cellInWorld.position = (Vector2)posInArray;
+        }
+    }
+    
     public void SunCellUpdate()
     {
-        energy += world.sunEnergy + (thoughts[5]/10f);
+        energy += world.sunEnergy + (thoughts[(int)GenType.SunGen]/world.sunGenDevider);
         if ((int)energy > world.maxEnergy)
         {
             energy = world.maxEnergy;
@@ -406,7 +436,7 @@ public class Cell : CellCore
         {
             if (kind == CellKind.Meat)
             {
-                energy += 0.5f;
+                energy += world.predatorTimeBoost;
             }
         }
 

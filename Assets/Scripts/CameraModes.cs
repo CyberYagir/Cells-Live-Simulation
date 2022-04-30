@@ -27,7 +27,7 @@ public class CameraModes : MonoBehaviour
     {
         if (viewMode == ViewMode.Gen) viewMode = ViewMode.Type; else viewMode = ViewMode.Gen;
 
-        foreach (var item in GameManager.instance.activeCells)
+        foreach (var item in GameManager.Instance.activeCells)
         {
             item.ChangeColor();
         }

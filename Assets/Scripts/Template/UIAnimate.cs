@@ -37,6 +37,7 @@ public class UIAnimate : MonoBehaviour
     {
         if (Time.unscaledDeltaTime > 0.1f) return;
         time += Time.unscaledDeltaTime;
+        
         if (plaing && time > startWaitTime)
         {
             if (playType == PlayType.Forward)
@@ -48,6 +49,19 @@ public class UIAnimate : MonoBehaviour
                 Move(startPoint);
             }
         }        
+    }
+
+    public void PinPong()
+    {
+        plaing = true;
+        if (playType == PlayType.Forward)
+        {
+            playType = PlayType.Rewind;
+        }
+        else
+        {
+            playType = PlayType.Forward;
+        }
     }
 
     public void Move(Vector3 point)

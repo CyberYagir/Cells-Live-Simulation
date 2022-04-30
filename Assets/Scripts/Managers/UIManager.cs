@@ -75,10 +75,10 @@ public class UIManager : MonoBehaviour
     }
     public void UpdateUI()
     {
-        tiks.text = $"Tick: {GameManager.instance.ticks} [{GameManager.instance.generation}]";
-        sun.text = $"{GameManager.instance.sun} c.";
-        meat.text = $"{GameManager.instance.meat} c.";
-        combined.text = $"{GameManager.instance.combined} c.";
+        tiks.text = $"Tick: {GameManager.Instance.ticks} [{GameManager.Instance.generation}]";
+        sun.text = $"{GameManager.Instance.sun} c.";
+        meat.text = $"{GameManager.Instance.meat} c.";
+        combined.text = $"{GameManager.Instance.combined} c.";
 
 
         if (SelectCell.selected == null)

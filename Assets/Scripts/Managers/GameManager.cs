@@ -2,38 +2,41 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-[System.Serializable]
-public class World {
-    public float sunEnergy;
-    public int maxEnergy;
-    public float actionEnergy;
-    public float deathSpeed;
-}
+
 
 
 public class GameManager : MonoBehaviour
 {
-    public static GameManager instance;
-    public int fieldSize;
-    Cell[,] cells;
-    [SerializeField] GameObject cellPrefab;
-    List<Cell> cellsPool = new List<Cell>();
-    [HideInInspector]
-    public List<Cell> activeCells = new List<Cell>();
-    public World world;
-    [HideInInspector]
-    public int sun, meat, combined, ticks, generation;
+    public static GameManager Instance;
+    public int fieldSize { get; private set; }
+    [SerializeField] private GameObject cellPrefab;
+    private List<Cell> cellsPool = new List<Cell>();
+    private Cell[,] cells;
+    
+    public WorldObject world;
+    
+    
+     public List<Cell> activeCells = new List<Cell>();
+    [HideInInspector] public int sun, meat, combined, ticks, generation;
 
-    public int cellsPoolDisplay, activeCellsDisplay, deadCellsDisplay;
 
-    private void Awake()
+
+    private void InitCamera()
     {
-        fieldSize = PlayerPrefs.GetInt("Size", 200);
         var cam = FindObjectOfType<RenderTextureCreator>().GetComponent<Camera>();
         cam.transform.position = new Vector3(fieldSize / 2f, fieldSize / 2f, -10f) - (Vector3.one / 2f);
-        cam.orthographicSize = fieldSize / 2;
+        cam.orthographicSize = fieldSize / 2f;
+    }
+    
+    private void Awake()
+    {
+        Instance = this;
 
-        instance = this;
+        world = SaveManager.LoadWorld();
+
+        fieldSize = world.fieldSize;
+        
+        InitCamera();
         PoolInit();
         Init();
         StartCoroutine(Ticks());
@@ -45,12 +48,11 @@ public class GameManager : MonoBehaviour
         {
             StopAllCoroutines();
         }
-        cellsPoolDisplay = cellsPool.Count;
-        activeCellsDisplay = activeCells.Count;
     }
 
-    public void PoolInit()
+    private void PoolInit()
     {
+        cellsPool = new List<Cell>(fieldSize * fieldSize);
         for (int i = 0; i < fieldSize * fieldSize; i++)
         {
             var inst = Instantiate(cellPrefab, transform);
@@ -58,33 +60,35 @@ public class GameManager : MonoBehaviour
             cellsPool.Add(cell);
         }
     }
+
     public Cell GetFromPool()
     {
         if (cellsPool.Count > 0)
         {
-            var cell = cellsPool[0];
-            cellsPool.RemoveAt(0);
+            var cell = cellsPool[cellsPool.Count-1];
+            cellsPool.RemoveAt(cellsPool.Count-1);
             activeCells.Add(cell);
             return cell;
         }
+
         return null;
     }
 
-    public void BackToPool(Cell cell)
+    private void BackToPool(Cell cell)
     {
         cell.UnInit();
         cellsPool.Add(cell);
         cells[cell.posInArray.x, cell.posInArray.y] = null;
     }
 
-    public void Init()
+    private void Init()
     {
         cells = new Cell[fieldSize, fieldSize];
         Spawn();
     }
-    public void Spawn()
+    private void Spawn()
     {
-        for (int i = 0; i < 10; i++)
+        for (int i = 0; i < world.startCount; i++)
         {
             var pos = new Vector2Int(Random.Range(0, fieldSize), Random.Range(0, fieldSize));
             if (Get(pos) == null)
@@ -95,7 +99,7 @@ public class GameManager : MonoBehaviour
         }
         generation++;
     }
-    public void BackDeadCells()
+    private void BackDeadCells()
     {
         for (int x = 0; x < cells.GetLength(0); x++)
         {
@@ -110,7 +114,7 @@ public class GameManager : MonoBehaviour
     {
         return cells[pos.x, pos.y];
     }
-    public Cell Set(Vector2Int pos, CellCore cell, bool death = false)
+    public Cell Set(Vector2Int pos, CellCore cell, bool death = false, bool isEating = false)
     {
         if (death)
         {
@@ -119,7 +123,13 @@ public class GameManager : MonoBehaviour
                 BackToPool(cells[pos.x, pos.y]);
                 return null;
             }
+        }else
+        if (isEating && cell == null && cells[pos.x, pos.y] != null)
+        {
+            cells[pos.x, pos.y].isDead = true;
+            BackToPool(cells[pos.x, pos.y]);
         }
+        
         cells[pos.x, pos.y] = (cell as Cell);
         return cells[pos.x, pos.y];
     }
@@ -143,7 +153,6 @@ public class GameManager : MonoBehaviour
             }
             yield return new WaitForSeconds(1f / 20f);
             sun = 0; meat = 0; combined = 0;
-
             List<int> removes = new List<int>();
             for (int i = 0; i < activeCells.Count; i++)
             {
@@ -179,7 +188,6 @@ public class GameManager : MonoBehaviour
                     removes.Add(i);
                 }
             }
-            
             for (int i = 0; i < removes.Count; i++)
             {
                 activeCells.RemoveAt(removes[i]-i);
@@ -190,6 +198,4 @@ public class GameManager : MonoBehaviour
             yield return null;
         }
     }
-
-
 }
