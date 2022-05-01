@@ -7,11 +7,13 @@ using UnityEngine.SceneManagement;
 
 public class MenuManager : MonoBehaviour
 {
-    public TMP_InputField inputField;
-    public GameObject fade;
+    [SerializeField] private TMP_InputField inputField;
+    [SerializeField] private GameObject fade;
+    [SerializeField] private TMP_Text text;
     public static WorldObject world;
     private void Awake()
     {
+        text.text = "ver " + Application.version;
         Time.timeScale = 1;
         world = SaveManager.LoadWorld();
         inputField.text = world.fieldSize.ToString();

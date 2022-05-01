@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
 
 public class Fader : MonoBehaviour
 {
@@ -24,7 +25,9 @@ public class Fader : MonoBehaviour
     }
     IEnumerator wait()
     {
-        yield return new WaitForSecondsRealtime(waitTime);
+        yield return new WaitForSecondsRealtime(waitTime/2f);
+        GetComponent<Image>().raycastTarget = false;
+        yield return new WaitForSecondsRealtime(waitTime/2f);
         waitEnd = true;
     }
 }
