@@ -1,0 +1,34 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e9967e7ad3679e646aab8282af62a8fc, type: 3}
+  m_Name: Standard
+  m_EditorClassIdentifier: 
+  fieldSize: 200
+  sunEnergy: 2
+  maxEnergy: 30
+  actionEnergy: 10
+  deathSpeed: 0.1
+  heathMultiply: 10
+  duplicateRarity: 50
+  healthRandom:
+    min: 1
+    max: 1.5
+  sunGenDevider: 10
+  predatorTimeBoost: 0.2
+  kindsEnergyDeviders:
+    sun: 1
+    meat: 3
+    combined: 2
+  deathColor: {r: 0.2, g: 0.2, b: 0.2, a: 1}
+  isBrotherDifference: 25
+  startCount: 10
+  isEnableTransfer: 0

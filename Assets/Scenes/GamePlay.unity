@@ -6602,7 +6602,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_Material: {fileID: 0}
-  m_Color: {r: 0.2264151, g: 0.2264151, b: 0.2264151, a: 1}
+  m_Color: {r: 0.14901961, g: 0.14901961, b: 0.14901961, a: 1}
   m_RaycastTarget: 1
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
@@ -6705,7 +6705,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   cellPrefab: {fileID: 2058521914059826125, guid: 958d352f55ca3ae40832c31ee9eaeea4,
     type: 3}
-  poolCaret: 0
   world: {fileID: 11400000, guid: 918ceaad19280fe469bb0b9432f5d02d, type: 2}
   activeCells: []
   sun: 0

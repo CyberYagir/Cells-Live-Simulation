@@ -9,7 +9,7 @@ public class CameraModes : MonoBehaviour
     public static CameraMode cameraMode;
 
 
-    public enum ViewMode { Gen, Type};
+    public enum ViewMode { Gen, Type, Energy};
     public static ViewMode viewMode;
 
     public RenderTextureCreator renderTexture;
@@ -25,13 +25,19 @@ public class CameraModes : MonoBehaviour
 
     public void SetViewMode()
     {
-        if (viewMode == ViewMode.Gen) viewMode = ViewMode.Type; else viewMode = ViewMode.Gen;
+        if (viewMode == ViewMode.Gen)
+            viewMode = ViewMode.Type;
+        else if (viewMode == ViewMode.Type)
+            viewMode = ViewMode.Energy;
+        else
+            viewMode = ViewMode.Gen;
 
         foreach (var item in GameManager.Instance.activeCells)
         {
             item.ChangeColor();
         }
     }
+
     private void Update()
     {
         if (cameraMode != CameraMode.Clamp)

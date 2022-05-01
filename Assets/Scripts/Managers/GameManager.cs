@@ -42,13 +42,6 @@ public class GameManager : MonoBehaviour
         StartCoroutine(Ticks());
     }
 
-    void Update()
-    {
-        if (Input.GetKey(KeyCode.Space))
-        {
-            StopAllCoroutines();
-        }
-    }
 
     private void PoolInit()
     {
@@ -134,14 +127,6 @@ public class GameManager : MonoBehaviour
         return cells[pos.x, pos.y];
     }
 
-    private void OnDrawGizmos()
-    {
-        Gizmos.DrawLine(Vector3.zero, new Vector3(fieldSize, 0));
-        Gizmos.DrawLine(Vector3.zero, new Vector3(0, fieldSize));
-        Gizmos.DrawLine(new Vector3(fieldSize, 0), new Vector3(fieldSize, fieldSize));
-        Gizmos.DrawLine(new Vector3(0, fieldSize), new Vector3(fieldSize, fieldSize));
-    }
-
     IEnumerator Ticks()
     {
         while (true)
@@ -149,6 +134,7 @@ public class GameManager : MonoBehaviour
             if (activeCells.Count == 0)
             {
                 BackDeadCells();
+                activeCells = new List<Cell>();
                 Spawn();
             }
             yield return new WaitForSeconds(1f / 20f);
@@ -178,7 +164,7 @@ public class GameManager : MonoBehaviour
                     {
                         removes.Add(i);
                     }
-                    if (i % 1000 == 0)
+                    if (i % 5000 == 0)
                     {
                         yield return null;
                     }

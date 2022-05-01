@@ -3,9 +3,12 @@ using System.Collections;
 using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
+using UnityEngine.UI;
 
 public class UIOptions : MonoBehaviour
 {
+    [SerializeField] private List<WorldObject> worldObjects;
+    public TMP_Dropdown drop;
     public TMP_InputField sunEnergy;
     public TMP_InputField maxEnergy;
     public TMP_InputField actionEnergy;
@@ -16,10 +19,13 @@ public class UIOptions : MonoBehaviour
     public TMP_InputField predatorTimeBoost;
     public TMP_InputField isBrotherDifference;
     public TMP_InputField startCount;
-
+    public Toggle enableTransfer;
+    
 
     private void Start()
     {
+        worldObjects.Insert(0, MenuManager.world);
+        
         sunEnergy.text = MenuManager.world.sunEnergy.ToString();
         maxEnergy.text = MenuManager.world.maxEnergy.ToString();
         actionEnergy.text = MenuManager.world.actionEnergy.ToString();
@@ -30,6 +36,7 @@ public class UIOptions : MonoBehaviour
         predatorTimeBoost.text = MenuManager.world.predatorTimeBoost.ToString();
         isBrotherDifference.text = MenuManager.world.isBrotherDifference.ToString();
         startCount.text = MenuManager.world.startCount.ToString();
+        enableTransfer.isOn = MenuManager.world.isEnableTransfer;
     }
 
     public void ChangeSunEnergy()
@@ -91,5 +98,17 @@ public class UIOptions : MonoBehaviour
     {
         MenuManager.world.startCount = int.Parse(startCount.text);
         SaveManager.SaveWorld(MenuManager.world);
+    }
+
+    public void ChangeTransfer()
+    {
+        MenuManager.world.isEnableTransfer = enableTransfer.isOn;
+        SaveManager.SaveWorld(MenuManager.world);
+    }
+
+    public void SavePresetWorld()
+    {
+        SaveManager.SaveWorld(worldObjects[drop.value]);
+        Application.LoadLevel(0);
     }
 }

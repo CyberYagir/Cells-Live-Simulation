@@ -61,20 +61,21 @@ public class Cell : CellCore
 
     public void WorldInit(Vector2Int pos, CellCore parent = null)
     {
-        Init(cellInWorld, parent != null);
+        Init(cellInWorld, parent == null);
         cellInWorld.gameObject.SetActive(true);
         cellInWorld.position = (Vector2)pos;
         smoothMover.newPos = ((Vector2)pos);
         posInArray = pos;
         if (parent != null)
         {
-            thoughts = (parent as Cell).thoughts;
-            
+            var parentCell = (parent as Cell);
+            thoughts = parentCell.thoughts;
+               
             if (Random.Range(0, thoughts[thoughtsLength-1] * world.duplicateRarity) == 0)
                 thoughts[Random.Range(0, thoughtsLength)] = (byte)Random.Range(0, thoughtsMax);
             genSum = CollectGens();
             kind = parent.kind;
-
+            
             var dirs = new List<bool>();
             dirs.Add(CheckDir(Vector2Int.up));
             dirs.Add(CheckDir(Vector2Int.down));
@@ -105,7 +106,6 @@ public class Cell : CellCore
         typeColor = kind == CellKind.Sun ? Color.green : (kind == CellKind.Meat ? Color.red : Color.blue);
         
         hp = thoughts[(int)GenType.HealthGen] * world.heathMultiply  * world.healthRandom.GetRandom();
-
         
         maxhp = hp;
         ChangeColor();
@@ -143,7 +143,14 @@ public class Cell : CellCore
     {
         if (!isDead)
         {
-            renderer.color = CameraModes.viewMode == CameraModes.ViewMode.Gen ? genColor : typeColor;
+            if (CameraModes.viewMode == CameraModes.ViewMode.Energy)
+            {
+                EnergyColorSet();
+            }
+            else
+            {
+                renderer.color = CameraModes.viewMode == CameraModes.ViewMode.Gen ? genColor : typeColor;
+            }
         }
     }
     public void UnInit()
@@ -167,6 +174,10 @@ public class Cell : CellCore
         {
             RotateCell();
         }
+        else if (thoughts[currentThought] == 8 && world.isEnableTransfer)
+        {
+            TransferCellEnergy();
+        }
         GoToNextThought();
     }
     public void GoToNextThought()
@@ -180,7 +191,7 @@ public class Cell : CellCore
     
     public void TransferCellEnergy()
     {
-        if (energy >= world.maxEnergy)
+        if (energy >= world.maxEnergy-1)
         {
             switch (rotation)
             {
@@ -195,8 +206,6 @@ public class Cell : CellCore
                     break;
                 case Rotation.Down:
                     TransferEnergy(Vector2Int.down);
-                    break;
-                default:
                     break;
             }
             
@@ -385,14 +394,23 @@ public class Cell : CellCore
             }
             var oldPos = (Vector2)posInArray;
             Brain();
+            
             SmoothMove(oldPos);
 
+            EnergyColorSet();
         }
         hp -= world.deathSpeed;
-        
         if (hp <= 0)
         {
             Death();
+        }
+    }
+
+    public void EnergyColorSet()
+    {
+        if (!isDead && CameraModes.viewMode == CameraModes.ViewMode.Energy)
+        {
+            renderer.color = new Color(energy/world.maxEnergy, 0, 0, 1);
         }
     }
 

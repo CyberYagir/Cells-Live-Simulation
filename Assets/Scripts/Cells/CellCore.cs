@@ -55,10 +55,13 @@ public abstract class CellCore
         if (!CheckIsCellEmpty((Vector2)dir))
         {
             var cell = GameManager.Instance.Get(nextPos);
-            if (!IsNotBrotherCell(cell))
+            if (cell.energy < actionEnergy)
             {
-                cell.energy += actionEnergy;
-                energy -= actionEnergy;
+                if (!IsNotBrotherCell(cell))
+                {
+                    cell.energy += actionEnergy;
+                    energy -= actionEnergy;
+                }
             }
         }
     }
