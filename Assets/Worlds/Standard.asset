@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: Standard
   m_EditorClassIdentifier: 
   fieldSize: 200
-  sunEnergy: 2
+  sunEnergy: 1.5
   maxEnergy: 30
   actionEnergy: 10
   deathSpeed: 0.1

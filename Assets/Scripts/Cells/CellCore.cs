@@ -143,7 +143,7 @@ public abstract class CellCore
 
     protected bool IsNotBrotherCell(Cell nearCell)
     {
-        return (nearCell.genSum - genSum > world.isBrotherDifference);
+        return (Mathf.Abs(nearCell.genSum - genSum) > world.isBrotherDifference);
     }
 
     protected int CollectGens()

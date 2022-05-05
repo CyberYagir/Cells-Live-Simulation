@@ -23,7 +23,7 @@ public class TypeDeviders
 public class WorldObject : ScriptableObject
 {
     public int fieldSize = 200;
-    public float sunEnergy = 2;
+    public float sunEnergy = 1.5f;
     public int maxEnergy = 30;
     public float actionEnergy = 10;
     public float deathSpeed = 0.1f;
